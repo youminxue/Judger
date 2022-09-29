@@ -1,10 +1,11 @@
 #include "argtable3.h"
 #include "runner.h"
+#include <string.h>
 
 #define INT_PLACE_HOLDER "<n>"
 #define STR_PLACE_HOLDER "<str>"
 
-struct arg_lit *verb, *help, *version;
+struct arg_lit *verb;
 struct arg_int *max_cpu_time, *max_real_time, *max_memory, *max_stack, *memory_limit_check_only,
         *max_process_number, *max_output_size, *uid, *gid;
 struct arg_str *exe_path, *input_path, *output_path, *error_path, *args, *env, *log_path, *seccomp_rule_name;
@@ -12,11 +13,9 @@ struct arg_end *end;
 
 int main(int argc, char *argv[]) {
     void *arg_table[] = {
-            help = arg_litn(NULL, "help", 0, 1, "Display This Help And Exit"),
-            version = arg_litn(NULL, "version", 0, 1, "Display Version Info And Exit"),
             max_cpu_time = arg_intn(NULL, "max_cpu_time", INT_PLACE_HOLDER, 0, 1, "Max CPU Time (ms)"),
             max_real_time = arg_intn(NULL, "max_real_time", INT_PLACE_HOLDER, 0, 1, "Max Real Time (ms)"),
-            max_memory = arg_intn(NULL, "max_memory", INT_PLACE_HOLDER, 0, 1, "Max Memory (byte)"),
+            max_memory = arg_intn(NULL, "max_memory", INT_PLACE_HOLDER, 0, 1, "Max Memory (byte, default 16M)"),
             memory_limit_check_only = arg_intn(NULL, "memory_limit_check_only", INT_PLACE_HOLDER, 0, 1, "only check memory usage, do not setrlimit (default False)"),
             max_stack = arg_intn(NULL, "max_stack", INT_PLACE_HOLDER, 0, 1, "Max Stack (byte, default 16M)"),
             max_process_number = arg_intn(NULL, "max_process_number", INT_PLACE_HOLDER, 0, 1, "Max Process Number"),
@@ -38,28 +37,9 @@ int main(int argc, char *argv[]) {
 
             end = arg_end(10),
     };
-
     int exitcode = 0;
-    char name[] = "libjudger.so";
-
     int nerrors = arg_parse(argc, argv, arg_table);
-
-    if (help->count > 0) {
-        printf("Usage: %s", name);
-        arg_print_syntax(stdout, arg_table, "\n\n");
-        arg_print_glossary(stdout, arg_table, "  %-25s %s\n");
-        goto exit;
-    }
-
-    if (version->count > 0) {
-        printf("Version: %d.%d.%d\n", (VERSION >> 16) & 0xff, (VERSION >> 8) & 0xff, VERSION & 0xff);
-        goto exit;
-    }
-
     if (nerrors > 0) {
-        arg_print_errors(stdout, end, name);
-        printf("Try '%s --help' for more information.\n", name);
-        exitcode = 1;
         goto exit;
     }
 
@@ -80,8 +60,11 @@ int main(int argc, char *argv[]) {
 
     if (max_memory->count > 0) {
         _config.max_memory = (long) *max_memory->ival;
+        if (_config.max_memory == 0) {
+            _config.max_memory = UNLIMITED;
+        }
     } else {
-        _config.max_memory = UNLIMITED;
+        _config.max_memory = 16 * 1024 * 1024;
     }
 
     if (memory_limit_check_only->count > 0) {
@@ -151,7 +134,11 @@ int main(int argc, char *argv[]) {
     if (seccomp_rule_name->count > 0) {
         _config.seccomp_rule_name = (char *)seccomp_rule_name->sval[0];
     } else {
-        _config.seccomp_rule_name = NULL;
+        if (strstr(_config.exe_path, "python") != NULL){
+            _config.seccomp_rule_name = "general";
+        }else{
+            _config.seccomp_rule_name = NULL;
+        }
     }
 
     if (uid->count > 0) {
@@ -169,23 +156,23 @@ int main(int argc, char *argv[]) {
 
     run(&_config, &_result);
 
-    printf("{\n"
-           "    \"cpu_time\": %d,\n"
-           "    \"real_time\": %d,\n"
-           "    \"memory\": %ld,\n"
-           "    \"signal\": %d,\n"
-           "    \"exit_code\": %d,\n"
-           "    \"error\": %d,\n"
-           "    \"result\": %d\n"
-           "}",
-           _result.cpu_time,
-           _result.real_time,
-           _result.memory,
-           _result.signal,
-           _result.exit_code,
-           _result.error,
-           _result.result);
-
+    // printf("{\n"
+    //        "    \"cpu_time\": %d,\n"
+    //        "    \"real_time\": %d,\n"
+    //        "    \"memory\": %ld,\n"
+    //        "    \"signal\": %d,\n"
+    //        "    \"exit_code\": %d,\n"
+    //        "    \"error\": %d,\n"
+    //        "    \"result\": %d\n"
+    //        "}",
+    //        _result.cpu_time,
+    //        _result.real_time,
+    //        _result.memory,
+    //        _result.signal,
+    //        _result.exit_code,
+    //        _result.error,
+    //        _result.result);
+    exitcode = _result.result;
     exit:
     arg_freetable(arg_table, sizeof(arg_table) / sizeof(arg_table[0]));
     return exitcode;
