@@ -21,12 +21,12 @@ int main(int argc, char *argv[]) {
             max_process_number = arg_intn(NULL, "max_process_number", INT_PLACE_HOLDER, 0, 1, "Max Process Number"),
             max_output_size = arg_intn(NULL, "max_output_size", INT_PLACE_HOLDER, 0, 1, "Max Output Size (byte)"),
 
-            exe_path = arg_str1(NULL, "exe_path", STR_PLACE_HOLDER, "Exe Path"),
+            exe_path = arg_str1("e", "exe_path", STR_PLACE_HOLDER, "Exe Path"),
             input_path = arg_strn(NULL, "input_path", STR_PLACE_HOLDER, 0, 1, "Input Path"),
             output_path = arg_strn(NULL, "output_path", STR_PLACE_HOLDER, 0, 1, "Output Path"),
             error_path = arg_strn(NULL, "error_path", STR_PLACE_HOLDER, 0, 1, "Error Path"),
 
-            args = arg_strn(NULL, "args", STR_PLACE_HOLDER, 0, 255, "Arg"),
+            args = arg_strn("a", "args", STR_PLACE_HOLDER, 0, 255, "Arg"),
             env = arg_strn(NULL, "env", STR_PLACE_HOLDER, 0, 255, "Env"),
 
             log_path = arg_strn(NULL, "log_path", STR_PLACE_HOLDER, 0, 1, "Log Path"),
@@ -156,22 +156,22 @@ int main(int argc, char *argv[]) {
 
     run(&_config, &_result);
 
-    printf("{\n"
-           "    \"cpu_time\": %d,\n"
-           "    \"real_time\": %d,\n"
-           "    \"memory\": %ld,\n"
-           "    \"signal\": %d,\n"
-           "    \"exit_code\": %d,\n"
-           "    \"error\": %d,\n"
-           "    \"result\": %d\n"
-           "}",
-           _result.cpu_time,
-           _result.real_time,
-           _result.memory,
-           _result.signal,
-           _result.exit_code,
-           _result.error,
-           _result.result);
+//    printf("{\n"
+//           "    \"cpu_time\": %d,\n"
+//           "    \"real_time\": %d,\n"
+//           "    \"memory\": %ld,\n"
+//           "    \"signal\": %d,\n"
+//           "    \"exit_code\": %d,\n"
+//           "    \"error\": %d,\n"
+//           "    \"result\": %d\n"
+//           "}",
+//           _result.cpu_time,
+//           _result.real_time,
+//           _result.memory,
+//           _result.signal,
+//           _result.exit_code,
+//           _result.error,
+//           _result.result);
     exit:
     arg_freetable(arg_table, sizeof(arg_table) / sizeof(arg_table[0]));
     return exitcode;
