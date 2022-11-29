@@ -129,7 +129,7 @@ int main(int argc, char *argv[]) {
     if (log_path->count > 0) {
         _config.log_path = (char *)log_path->sval[0];
     } else {
-        _config.log_path = "judger.log";
+        _config.log_path = "container.log";
     }
     if (seccomp_rule_name->count > 0) {
         _config.seccomp_rule_name = (char *)seccomp_rule_name->sval[0];

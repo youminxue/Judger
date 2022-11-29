@@ -137,7 +137,7 @@ void run(struct config *_config, struct result *_result) {
                 }
             }
         }
-
+        LOG_INFO(log_fp, "result:%d exitcode:%d error:%d signal:%d",_result->result, _result->exit_code, _result->error, _result->signal);
         log_close(log_fp);
     }
 }
